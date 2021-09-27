@@ -1,2 +1,2 @@
 # Python-Keylogger
-A keylogger with some extra spyware capabilities. At this point it is mostly finished, I may come back and add a few more features later.
+A keylogger with timed iterations, screenshots, clipboard copying, system information, and automated sending of log files through Gmail.
